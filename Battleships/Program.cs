@@ -1,36 +1,59 @@
+using Battleships.Models.Settings;
+using Battleships.Services;
+using Battleships.Services.Interfaces;
+using NLog;
+using NLog.Web;
 
-namespace Battleships
+namespace Battleships;
+
+public class Program
 {
-    public class Program
+    // TODO > Add tests
+    // TODO > Add logging
+    // TODO > Add error handling + try catch
+
+    public static void Main(string[] args)
     {
-        public static void Main(string[] args)
+        var logger = LogManager.Setup().LoadConfigurationFromAppSettings().GetCurrentClassLogger();
+        logger.Debug("Battleships main inicialization started.");
+
+        try
         {
             var builder = WebApplication.CreateBuilder(args);
 
-            // Add services to the container.
+            builder.Services.Configure<ApplicationSettings>(builder.Configuration.GetSection(nameof(ApplicationSettings)));
+
+            builder.Services.AddScoped<IBattleshipsService, BattleshipsService>();
 
             builder.Services.AddControllers();
-            // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
 
+            builder.Logging.ClearProviders();
+            builder.Host.UseNLog();
+
             var app = builder.Build();
 
-            // Configure the HTTP request pipeline.
-            if (app.Environment.IsDevelopment())
-            {
-                app.UseSwagger();
-                app.UseSwaggerUI();
-            }
+            app.UseSwagger();
+            app.UseSwaggerUI();
 
             app.UseHttpsRedirection();
 
             app.UseAuthorization();
 
-
             app.MapControllers();
 
             app.Run();
+        }
+        catch (Exception ex)
+        {
+            logger.Error(ex, "Battleships main inicialization ended with error.");
+            throw;
+        }
+        finally
+        {
+            LogManager.Shutdown();
         }
     }
 }
