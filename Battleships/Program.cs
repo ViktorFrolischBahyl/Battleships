@@ -4,6 +4,8 @@ using Battleships.Services.Interfaces;
 using NLog;
 using NLog.Web;
 using System.Reflection;
+using Battleships.Providers;
+using Battleships.Providers.Interfaces;
 
 namespace Battleships;
 
@@ -12,8 +14,6 @@ namespace Battleships;
 /// </summary>
 public class Program
 {
-    // TODO > Game storage provider (in-memory, file, database, etc.)
-
     /// <summary>
     /// Defines the entry point of the application.
     /// </summary>
@@ -63,6 +63,8 @@ public class Program
         var builder = WebApplication.CreateBuilder(args);
 
         builder.Services.Configure<ApplicationSettings>(builder.Configuration.GetSection(nameof(ApplicationSettings)));
+
+        builder.Services.AddSingleton<IGamesStorageProvider, InMemoryGamesStorageProvider>();
 
         builder.Services.AddSingleton<IBattleshipsService, BattleshipsService>();
 

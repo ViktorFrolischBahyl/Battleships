@@ -1,6 +1,7 @@
 ﻿using Battleships.Models;
 using Battleships.Models.Game;
 using Battleships.Models.Settings;
+using Battleships.Providers.Interfaces;
 using Battleships.Services.Interfaces;
 using Microsoft.Extensions.Options;
 
@@ -10,7 +11,11 @@ namespace Battleships.Services;
 /// Implementation of the <see cref="IBattleshipsService" /> interface for managing battleship games.
 /// </summary>
 /// <seealso cref="Battleships.Services.Interfaces.IBattleshipsService" />
-public class BattleshipsService(ILogger<BattleshipsService> logger, IOptions<ApplicationSettings> settings) : IBattleshipsService
+public class BattleshipsService(
+    ILogger<BattleshipsService> logger,
+    IOptions<ApplicationSettings> settings,
+    IGamesStorageProvider gamesStorageProvider)
+    : IBattleshipsService
 {
     /// <summary>
     /// Gets the settings.
@@ -29,20 +34,12 @@ public class BattleshipsService(ILogger<BattleshipsService> logger, IOptions<App
     private ILogger<BattleshipsService> Logger { get; } = logger ?? throw new ArgumentNullException(nameof(logger));
 
     /// <summary>
-    /// Gets the active games.
+    /// Gets the games storage provider.
     /// </summary>
     /// <value>
-    /// The active games.
+    /// The games storage provider.
     /// </value>
-    private Dictionary<string, Game> ActiveGames { get; } = [];
-
-    /// <summary>
-    /// Gets the finished games.
-    /// </summary>
-    /// <value>
-    /// The finished games.
-    /// </value>
-    private Dictionary<string, Game> FinishedGames { get; } = [];
+    private IGamesStorageProvider GamesStorageProvider { get; } = gamesStorageProvider ?? throw new ArgumentNullException(nameof(gamesStorageProvider));
 
     /// <inheritdoc />
     public Game CreateGame(CreateGameInput input)
@@ -73,7 +70,7 @@ public class BattleshipsService(ILogger<BattleshipsService> logger, IOptions<App
 
             this.Logger.LogTrace($"Initialization of game {game.GameId} finished.");
 
-            this.ActiveGames.Add(game.GameId, game);
+            this.GamesStorageProvider.StoreActiveGame(game);
 
             this.Logger.LogDebug($"Method {nameof(this.CreateGame)} ended with game created {nameof(game.GameId)}={game.GameId}.");
 
@@ -84,26 +81,6 @@ public class BattleshipsService(ILogger<BattleshipsService> logger, IOptions<App
             this.Logger.LogError(ex, $"Method {nameof(this.CreateGame)} ended with error.");
             throw;
         }
-    }
-
-    /// <inheritdoc />
-    public Game GetActiveGame(string gameId)
-    {
-        if (string.IsNullOrEmpty(gameId)) throw new ArgumentException("Value cannot be null or empty.", nameof(gameId));
-
-        this.Logger.LogDebug($"Method {nameof(this.GetActiveGame)} started with following inputs: " +
-                             $"{nameof(gameId)}={gameId}");
-
-        if (this.ActiveGames.TryGetValue(gameId, out var game))
-        {
-            this.Logger.LogDebug($"Method {nameof(this.GetActiveGame)} ended with active game found {nameof(game.GameId)}={game.GameId}.");
-
-            return game;
-        }
-
-        var ex = new KeyNotFoundException($"Game with ID '{gameId}' not found.");
-        this.Logger.LogError(ex, $"Method {nameof(this.GetActiveGame)} ended with error.");
-        throw ex;
     }
 
     /// <inheritdoc />
@@ -118,7 +95,7 @@ public class BattleshipsService(ILogger<BattleshipsService> logger, IOptions<App
                                  $"{nameof(input.CellDimensions.X)}={input.CellDimensions.X}, " +
                                  $"{nameof(input.CellDimensions.Y)}={input.CellDimensions.Y}");
 
-            var game = this.GetActiveGame(input.GameId);
+            var game = this.GamesStorageProvider.GetActiveGame(input.GameId);
 
             var playingField = game.GetNextMovePlayerPlayingField();
 
@@ -149,8 +126,7 @@ public class BattleshipsService(ILogger<BattleshipsService> logger, IOptions<App
 
                         result.Winner = game.Winner;
 
-                        this.FinishedGames.Add(game.GameId, game);
-                        this.ActiveGames.Remove(game.GameId);
+                        this.GamesStorageProvider.EndActiveGame(game.GameId);
                     }
                 }
             }

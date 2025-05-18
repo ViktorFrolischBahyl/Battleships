@@ -16,13 +16,6 @@ public interface IBattleshipsService
     public Game CreateGame(CreateGameInput input);
 
     /// <summary>
-    /// Gets the active game.
-    /// </summary>
-    /// <param name="gameId">The game identifier.</param>
-    /// <returns>Active game representation.</returns>
-    public Game GetActiveGame(string gameId);
-
-    /// <summary>
     /// Fires the specified input.
     /// </summary>
     /// <param name="input">The input.</param>

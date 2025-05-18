@@ -37,25 +37,6 @@ public sealed class BattleshipsServiceTests
     }
 
     [TestMethod]
-    public void GetActiveGameTest()
-    {
-        var createdGame = this.CreateGame();
-
-        var activeGame = this.BattleshipsService.GetActiveGame(createdGame.GameId);
-
-        AssertGame(activeGame);
-    }
-
-    [TestMethod]
-    public void GetActiveGameNoSuchGameTest()
-    {
-        var exception = Assert.ThrowsException<KeyNotFoundException>(() => this.BattleshipsService.GetActiveGame("NO_SUCH_GAME"));
-
-        Assert.IsNotNull(exception);
-        Assert.IsTrue(exception.Message.Contains("Game with ID 'NO_SUCH_GAME' not found."));
-    }
-
-    [TestMethod]
     public void FireAtWaterTest()
     {
         var createdGame = this.CreateGame();
