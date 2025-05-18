@@ -8,22 +8,22 @@ public static class Helper
     {
         var shipsToPlace = new List<Ship>()
         {
-            new Ship()
+            new()
             {
                 Length = 5,
                 Type = "Carrier",
             },
-            new Ship()
+            new()
             {
                 Length = 1,
                 Type = "Submarine",
             },
-            new Ship()
+            new()
             {
                 Length = 1,
                 Type = "Submarine",
             },
-            new Ship()
+            new()
             {
                 Length = 2,
                 Type = "Boat",

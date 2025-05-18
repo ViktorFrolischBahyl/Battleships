@@ -6,23 +6,18 @@ namespace Battleships.Controllers;
 
 [ApiController]
 [Route("api/[controller]/[action]")]
-public class BattleshipsController : ControllerBase
+public class BattleshipsController(ILogger<BattleshipsController> logger, IBattleshipsService battleshipsService)
+    : ControllerBase
 {
-    private readonly ILogger<BattleshipsController> logger;
+    private ILogger<BattleshipsController> Logger { get; } = logger ?? throw new ArgumentNullException(nameof(logger));
 
-    public BattleshipsController(ILogger<BattleshipsController> logger, IBattleshipsService battleshipsService)
-    {
-        this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
-        this.BattleshipsService = battleshipsService ?? throw new ArgumentNullException(nameof(battleshipsService));
-    }
-
-    private IBattleshipsService BattleshipsService { get; }
+    private IBattleshipsService BattleshipsService { get; } = battleshipsService ?? throw new ArgumentNullException(nameof(battleshipsService));
 
     [HttpGet]
     [ActionName("health-check")]
     public ActionResult<string> Get()
     {
-        this.logger.LogDebug("health-check method initiated.");
+        this.Logger.LogDebug("health-check method initiated.");
 
         return this.Ok();
     }
@@ -33,7 +28,7 @@ public class BattleshipsController : ControllerBase
     {
         _ = createGameInput ?? throw new ArgumentNullException(nameof(createGameInput));
 
-        this.logger.LogDebug("start-game method initiated.");
+        this.Logger.LogDebug("start-game method initiated.");
 
         var createdGame = this.BattleshipsService.CreateGame(createGameInput);
 

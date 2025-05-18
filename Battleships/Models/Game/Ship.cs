@@ -6,5 +6,5 @@ public class Ship
 
     public int Length { get; set; }
 
-    public List<Cell> Position { get; } = new List<Cell>();
+    public List<Cell> Position { get; } = [];
 }

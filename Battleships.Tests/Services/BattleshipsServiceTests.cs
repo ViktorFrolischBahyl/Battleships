@@ -33,7 +33,7 @@ public sealed class BattleshipsServiceTests
     {
         var createdGame = this.CreateGame();
 
-        this.AssertGame(createdGame);
+        AssertGame(createdGame);
     }
 
     [TestMethod]
@@ -43,7 +43,7 @@ public sealed class BattleshipsServiceTests
 
         var activeGame = this.BattleshipsService.GetActiveGame(createdGame.GameId);
 
-        this.AssertGame(activeGame);
+        AssertGame(activeGame);
     }
 
     [TestMethod]
@@ -79,7 +79,7 @@ public sealed class BattleshipsServiceTests
         return createdGame;
     }
 
-    private void AssertGame(Game game)
+    private static void AssertGame(Game game)
     {
         Assert.IsNotNull(game);
         Assert.IsFalse(string.IsNullOrEmpty(game.GameId));

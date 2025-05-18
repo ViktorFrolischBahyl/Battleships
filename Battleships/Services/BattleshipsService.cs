@@ -10,7 +10,7 @@ public class BattleshipsService(IOptions<ApplicationSettings> settings) : IBattl
 {
     private ApplicationSettings Settings { get; } = settings?.Value ?? throw new ArgumentNullException(nameof(settings));
 
-    private Dictionary<string, Game> ActiveGames { get; } = new();
+    private Dictionary<string, Game> ActiveGames { get; } = [];
 
     public Game CreateGame(CreateGameInput input)
     {
