@@ -1,4 +1,5 @@
 ﻿using Battleships.Models;
+using Battleships.Models.Game;
 using Battleships.Models.Settings;
 using Battleships.Services.Interfaces;
 using Microsoft.Extensions.Options;

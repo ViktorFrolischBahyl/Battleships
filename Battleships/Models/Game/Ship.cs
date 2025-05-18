@@ -1,8 +1,8 @@
-﻿namespace Battleships.Models;
+﻿namespace Battleships.Models.Game;
 
 public class Ship
 {
-    public string Type { get; set; }
+    public string? Type { get; set; }
 
     public int Length { get; set; }
 

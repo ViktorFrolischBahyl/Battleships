@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace Battleships.Models;
+namespace Battleships.Models.Game;
 
 public class Dimensions
 {

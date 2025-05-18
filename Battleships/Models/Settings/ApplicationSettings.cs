@@ -1,4 +1,6 @@
-﻿namespace Battleships.Models.Settings;
+﻿using Battleships.Models.Game;
+
+namespace Battleships.Models.Settings;
 
 public class ApplicationSettings
 {

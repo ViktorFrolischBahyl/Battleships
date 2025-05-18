@@ -29,7 +29,7 @@ public class BattleshipsController : ControllerBase
 
     [HttpPost]
     [ActionName("start-game")]
-    public ActionResult<string> Post([FromBody] CreateGameInput createGameInput)
+    public ActionResult<CreateGameOutput> Post([FromBody] CreateGameInput createGameInput)
     {
         _ = createGameInput ?? throw new ArgumentNullException(nameof(createGameInput));
 
@@ -37,6 +37,9 @@ public class BattleshipsController : ControllerBase
 
         var createdGame = this.BattleshipsService.CreateGame(createGameInput);
 
-        return this.Ok(createdGame.GameId);
+        return this.Ok(new CreateGameOutput()
+        {
+            GameId = createdGame.GameId,
+        });
     }
 }
