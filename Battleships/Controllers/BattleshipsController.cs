@@ -37,4 +37,17 @@ public class BattleshipsController(ILogger<BattleshipsController> logger, IBattl
             GameId = createdGame.GameId,
         });
     }
+
+    [HttpPut]
+    [ActionName("next-move")]
+    public ActionResult<FireOutput> Put([FromBody] FireInput fireInput)
+    {
+        _ = fireInput ?? throw new ArgumentNullException(nameof(fireInput));
+
+        this.Logger.LogDebug("next-move method initiated.");
+
+        var result = this.BattleshipsService.Fire(fireInput);
+
+        return this.Ok(result);
+    }
 }

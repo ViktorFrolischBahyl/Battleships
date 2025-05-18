@@ -51,7 +51,7 @@ public class Program
 
         builder.Services.Configure<ApplicationSettings>(builder.Configuration.GetSection(nameof(ApplicationSettings)));
 
-        builder.Services.AddScoped<IBattleshipsService, BattleshipsService>();
+        builder.Services.AddSingleton<IBattleshipsService, BattleshipsService>();
 
         builder.Services.AddControllers();
 

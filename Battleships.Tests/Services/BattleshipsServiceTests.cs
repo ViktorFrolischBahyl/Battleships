@@ -55,15 +55,268 @@ public sealed class BattleshipsServiceTests
         Assert.IsTrue(exception.Message.Contains("Game with ID 'NO_SUCH_GAME' not found."));
     }
 
+    [TestMethod]
+    public void FireAtWaterTest()
+    {
+        var createdGame = this.CreateGame();
+
+        DisplayCurrentGameState(createdGame);
+
+        var nextPlayerPlayingField = createdGame.GetNextMovePlayerPlayingField();
+
+        var waterCell = nextPlayerPlayingField.Grid.Cast<Cell>().FirstOrDefault(cell => cell.State == CellState.Water);
+
+        Assert.IsNotNull(waterCell);
+
+        var input = new FireInput()
+        {
+            GameId = createdGame.GameId,
+            CellDimensions = waterCell,
+        };
+
+        Trace.WriteLine($"Player '{createdGame.NextMovePlayer.Name}' firing at (X:{waterCell.X}, Y:{waterCell.Y}).");
+
+        var fireOutput = this.BattleshipsService.Fire(input);
+
+        Assert.IsNotNull(fireOutput);
+        Assert.IsFalse(string.IsNullOrEmpty(fireOutput.GameId));
+        Assert.AreEqual(createdGame.GameId, fireOutput.GameId);
+        Assert.AreEqual(HitState.Water, fireOutput.HitState);
+
+        Assert.AreEqual(createdGame.PlayerTwo.Name, createdGame.NextMovePlayer.Name);
+
+        DisplayCurrentGameState(createdGame);
+    }
+
+    [TestMethod]
+    public void FireAtShipTest()
+    {
+        var createdGame = this.CreateGame();
+
+        DisplayCurrentGameState(createdGame);
+
+        var nextPlayerPlayingField = createdGame.GetNextMovePlayerPlayingField();
+
+        var shipToFireAt = nextPlayerPlayingField.Fleet.Find(ship => ship.Length > 1);
+
+        Assert.IsNotNull(shipToFireAt);
+
+        var shipCell = shipToFireAt.Position.First();
+
+        Assert.IsNotNull(shipCell);
+
+        var input = new FireInput()
+        {
+            GameId = createdGame.GameId,
+            CellDimensions = shipCell,
+        };
+
+        Trace.WriteLine($"Player '{createdGame.NextMovePlayer.Name}' firing at (X:{shipCell.X}, Y:{shipCell.Y}).");
+
+        var fireOutput = this.BattleshipsService.Fire(input);
+
+        Assert.IsNotNull(fireOutput);
+        Assert.IsFalse(string.IsNullOrEmpty(fireOutput.GameId));
+        Assert.AreEqual(createdGame.GameId, fireOutput.GameId);
+        Assert.AreEqual(HitState.Hit, fireOutput.HitState);
+
+        Assert.AreEqual(createdGame.PlayerOne.Name, createdGame.NextMovePlayer.Name);
+
+        DisplayCurrentGameState(createdGame);
+    }
+
+    [TestMethod]
+    public void PlayerOneDestroysShipTest()
+    {
+        var createdGame = this.CreateGame();
+
+        DisplayCurrentGameState(createdGame);
+
+        var nextPlayerPlayingField = createdGame.GetNextMovePlayerPlayingField();
+
+        var shipToFireAt = nextPlayerPlayingField.Fleet.Find(ship => ship.Length > 1);
+
+        Assert.IsNotNull(shipToFireAt);
+
+        FireOutput? fireOutput = null;
+
+        shipToFireAt.Position.ForEach(cell =>
+        {
+            var input = new FireInput()
+            {
+                GameId = createdGame.GameId,
+                CellDimensions = cell,
+            };
+
+            Trace.WriteLine($"Player '{createdGame.NextMovePlayer.Name}' firing at (X:{cell.X}, Y:{cell.Y}).");
+
+            fireOutput = this.BattleshipsService.Fire(input);
+        });
+
+        Assert.IsNotNull(fireOutput);
+        Assert.IsFalse(string.IsNullOrEmpty(fireOutput.GameId));
+        Assert.AreEqual(createdGame.GameId, fireOutput.GameId);
+        Assert.AreEqual(HitState.WholeShipDestroyed, fireOutput.HitState);
+
+        Assert.AreEqual(createdGame.PlayerOne.Name, createdGame.NextMovePlayer.Name);
+
+        DisplayCurrentGameState(createdGame);
+    }
+
+    [TestMethod]
+    public void PlayerTwoDestroysShipTest()
+    {
+        var createdGame = this.CreateGame();
+
+        DisplayCurrentGameState(createdGame);
+
+        var nextPlayerPlayingField = createdGame.GetNextMovePlayerPlayingField();
+
+        var waterCell = nextPlayerPlayingField.Grid.Cast<Cell>().FirstOrDefault(cell => cell.State == CellState.Water);
+
+        Assert.IsNotNull(waterCell);
+
+        var input = new FireInput()
+        {
+            GameId = createdGame.GameId,
+            CellDimensions = waterCell,
+        };
+
+        Trace.WriteLine($"Player '{createdGame.NextMovePlayer.Name}' firing at (X:{waterCell.X}, Y:{waterCell.Y}).");
+
+        this.BattleshipsService.Fire(input);
+
+        nextPlayerPlayingField = createdGame.GetNextMovePlayerPlayingField();
+
+        var shipToFireAt = nextPlayerPlayingField.Fleet.Find(ship => ship.Length > 1);
+
+        Assert.IsNotNull(shipToFireAt);
+
+        FireOutput? fireOutput = null;
+
+        shipToFireAt.Position.ForEach(cell =>
+        {
+            input = new FireInput()
+            {
+                GameId = createdGame.GameId,
+                CellDimensions = cell,
+            };
+
+            Trace.WriteLine($"Player '{createdGame.NextMovePlayer.Name}' firing at (X:{cell.X}, Y:{cell.Y}).");
+
+            fireOutput = this.BattleshipsService.Fire(input);
+        });
+
+        Assert.IsNotNull(fireOutput);
+        Assert.IsFalse(string.IsNullOrEmpty(fireOutput.GameId));
+        Assert.AreEqual(createdGame.GameId, fireOutput.GameId);
+        Assert.AreEqual(HitState.WholeShipDestroyed, fireOutput.HitState);
+
+        Assert.AreEqual(createdGame.PlayerTwo.Name, createdGame.NextMovePlayer.Name);
+
+        DisplayCurrentGameState(createdGame);
+    }
+
+    [TestMethod]
+    public void PlayerOneWinsTest()
+    {
+        var createdGame = this.CreateGame();
+
+        DisplayCurrentGameState(createdGame);
+
+        var nextPlayerPlayingField = createdGame.GetNextMovePlayerPlayingField();
+
+        FireOutput? fireOutput = null;
+
+        nextPlayerPlayingField.Fleet.ForEach(ship =>
+        {
+            ship.Position.ForEach(cell =>
+            {
+                var input = new FireInput()
+                {
+                    GameId = createdGame.GameId,
+                    CellDimensions = cell,
+                };
+
+                Trace.WriteLine($"Player '{createdGame.NextMovePlayer.Name}' firing at (X:{cell.X}, Y:{cell.Y}).");
+
+                fireOutput = this.BattleshipsService.Fire(input);
+            });
+        });
+
+        Assert.IsNotNull(fireOutput);
+        Assert.IsFalse(string.IsNullOrEmpty(fireOutput.GameId));
+        Assert.AreEqual(createdGame.GameId, fireOutput.GameId);
+        Assert.AreEqual(HitState.WholeShipDestroyed, fireOutput.HitState);
+        Assert.IsTrue(fireOutput.GameEnded);
+
+        Assert.IsNotNull(createdGame.Winner);
+        Assert.AreEqual(createdGame.PlayerOne.Name, createdGame.Winner.Name);
+
+        DisplayCurrentGameState(createdGame);
+    }
+
+    [TestMethod]
+    public void PlayerTwoWinsTest()
+    {
+        var createdGame = this.CreateGame();
+
+        DisplayCurrentGameState(createdGame);
+
+        var nextPlayerPlayingField = createdGame.GetNextMovePlayerPlayingField();
+
+        var waterCell = nextPlayerPlayingField.Grid.Cast<Cell>().FirstOrDefault(cell => cell.State == CellState.Water);
+
+        Assert.IsNotNull(waterCell);
+
+        var input = new FireInput()
+        {
+            GameId = createdGame.GameId,
+            CellDimensions = waterCell,
+        };
+
+        Trace.WriteLine($"Player '{createdGame.NextMovePlayer.Name}' firing at (X:{waterCell.X}, Y:{waterCell.Y}).");
+
+        this.BattleshipsService.Fire(input);
+
+        nextPlayerPlayingField = createdGame.GetNextMovePlayerPlayingField();
+
+        FireOutput? fireOutput = null;
+
+        nextPlayerPlayingField.Fleet.ForEach(ship =>
+        {
+            ship.Position.ForEach(cell =>
+            {
+                var input = new FireInput()
+                {
+                    GameId = createdGame.GameId,
+                    CellDimensions = cell,
+                };
+
+                Trace.WriteLine($"Player '{createdGame.NextMovePlayer.Name}' firing at (X:{cell.X}, Y:{cell.Y}).");
+
+                fireOutput = this.BattleshipsService.Fire(input);
+            });
+        });
+
+        Assert.IsNotNull(fireOutput);
+        Assert.IsFalse(string.IsNullOrEmpty(fireOutput.GameId));
+        Assert.AreEqual(createdGame.GameId, fireOutput.GameId);
+        Assert.AreEqual(HitState.WholeShipDestroyed, fireOutput.HitState);
+        Assert.IsTrue(fireOutput.GameEnded);
+
+        Assert.IsNotNull(createdGame.Winner);
+        Assert.AreEqual(createdGame.PlayerTwo.Name, createdGame.Winner.Name);
+
+        DisplayCurrentGameState(createdGame);
+    }
+
     private Game CreateGame()
     {
         var input = new CreateGameInput()
         {
-            PlayingFieldDimensions = new Dimensions()
-            {
-                X = 10,
-                Y = 10,
-            },
+            X = 10,
+            Y = 10,
             PlayerOne = new Player()
             {
                 Name = "Player1",
@@ -90,6 +343,11 @@ public sealed class BattleshipsServiceTests
         Assert.IsNotNull(game.PlayerOneField);
         Assert.IsNotNull(game.PlayerTwoField);
 
+        DisplayCurrentGameState(game);
+    }
+
+    private static void DisplayCurrentGameState(Game game)
+    {
         Trace.WriteLine($"Player '{game.PlayerOne.Name}' playing field:");
         Trace.WriteLine(game.PlayerOneField.GetStringRepresentationOfGrid());
 

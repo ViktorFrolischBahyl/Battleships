@@ -1,4 +1,6 @@
-﻿namespace Battleships.Models.Game;
+﻿using System.ComponentModel;
+
+namespace Battleships.Models.Game;
 
 public class PlayingField
 {
@@ -80,7 +82,7 @@ public class PlayingField
                     CellState.Ship => "O",
                     CellState.Hit => "X",
                     CellState.Miss => "-",
-                    _ => throw new ArgumentOutOfRangeException(nameof(Cell.State), $"Unknown cell state: {this.Grid[x, y].State}"),
+                    _ => throw new InvalidEnumArgumentException(nameof(Cell.State), (int)this.Grid[x, y].State, typeof(CellState)),
                 };
 
                 row += "|";
@@ -90,6 +92,60 @@ public class PlayingField
         }
 
         return gridRepresentation;
+    }
+
+    public Cell Fire(Dimensions cellDimensions)
+    {
+        _ = cellDimensions ?? throw new ArgumentNullException(nameof(cellDimensions));
+
+        if (cellDimensions.X < 0 || cellDimensions.X >= this.PlayingFieldDimensions.X
+            || cellDimensions.Y < 0 || cellDimensions.Y >= this.PlayingFieldDimensions.Y)
+        {
+            throw new InvalidOperationException($"Dimension (X:{cellDimensions.X}, Y:{cellDimensions.Y}) are outside of defined playing field!");
+        }
+
+        var cell = this.Grid[cellDimensions.X, cellDimensions.Y];
+
+        switch (cell.State)
+        {
+            case CellState.Water:
+                cell.State = CellState.Miss;
+                return cell;
+            case CellState.Ship:
+                cell.State = CellState.Hit;
+                return cell;
+            case CellState.Hit:
+            case CellState.Miss:
+                throw new InvalidOperationException($"Cell (X:{cellDimensions.X}, Y:{cellDimensions.Y}) has already been fired at!");
+            default:
+                throw new InvalidEnumArgumentException(nameof(Cell.State), (int)cell.State, typeof(CellState));
+        }
+    }
+
+    public bool WasWholeShipDestroyed(Cell cell)
+    {
+        _ = cell ?? throw new ArgumentNullException(nameof(cell));
+
+        if (cell.State != CellState.Hit)
+        {
+            return false;
+        }
+
+        var ship = this.Fleet.FindAll(ship => ship.Position.Contains(cell)).Single();
+
+        return this.WasWholeShipDestroyed(ship);
+    }
+
+    public bool AreAllShipsDestroyed()
+    {
+        return this.Fleet.All(this.WasWholeShipDestroyed);
+    }
+
+    private bool WasWholeShipDestroyed(Ship ship)
+    {
+        _ = ship ?? throw new ArgumentNullException(nameof(ship));
+
+        return ship.Position.All(cell => cell.State == CellState.Hit);
     }
 
     private List<List<Cell>> GetPossiblePositions(Ship ship)
@@ -185,13 +241,6 @@ public class PlayingField
             return false;
         }
 
-        if (x - 1 >= 0
-            && y - 1 >= 0
-            && this.Grid[x - 1, y - 1].State != CellState.Water)
-        {
-            return false;
-        }
-
         if (x + 1 < this.PlayingFieldDimensions.X
             && this.Grid[x + 1, y].State != CellState.Water)
         {
@@ -204,9 +253,30 @@ public class PlayingField
             return false;
         }
 
+        if (x - 1 >= 0
+            && y - 1 >= 0
+            && this.Grid[x - 1, y - 1].State != CellState.Water)
+        {
+            return false;
+        }
+
         if (x + 1 < this.PlayingFieldDimensions.X
             && y + 1 < this.PlayingFieldDimensions.Y
             && this.Grid[x + 1, y + 1].State != CellState.Water)
+        {
+            return false;
+        }
+
+        if (x - 1 >= 0
+            && y + 1 < this.PlayingFieldDimensions.Y
+            && this.Grid[x - 1, y + 1].State != CellState.Water)
+        {
+            return false;
+        }
+
+        if (x + 1 < this.PlayingFieldDimensions.X
+            && y - 1 >= 0
+            && this.Grid[x + 1, y - 1].State != CellState.Water)
         {
             return false;
         }

@@ -12,6 +12,8 @@ public class BattleshipsService(IOptions<ApplicationSettings> settings) : IBattl
 
     private Dictionary<string, Game> ActiveGames { get; } = [];
 
+    private Dictionary<string, Game> FinishedGames { get; } = [];
+
     public Game CreateGame(CreateGameInput input)
     {
         _ = input ?? throw new ArgumentNullException(nameof(input));
@@ -20,9 +22,13 @@ public class BattleshipsService(IOptions<ApplicationSettings> settings) : IBattl
             playerOne: input.PlayerOne,
             playerTwo: input.PlayerTwo);
 
-        game.GeneratePlayersFields(
+        game.InitializeGame(
             this.Settings.Battleships,
-            input.PlayingFieldDimensions);
+            new Dimensions()
+            {
+                X = input.X,
+                Y = input.Y,
+            });
 
         this.ActiveGames.Add(game.GameId, game);
 
@@ -37,5 +43,53 @@ public class BattleshipsService(IOptions<ApplicationSettings> settings) : IBattl
         }
 
         throw new KeyNotFoundException($"Game with ID '{gameId}' not found.");
+    }
+
+    public FireOutput Fire(FireInput input)
+    {
+        _ = input ?? throw new ArgumentNullException(nameof(input));
+
+        var game = this.GetActiveGame(input.GameId);
+
+        var playingField = game.GetNextMovePlayerPlayingField();
+
+        var cellFiredAt = playingField.Fire(input.CellDimensions);
+
+        var result = new FireOutput()
+        {
+            GameId = input.GameId,
+        };
+
+        if (cellFiredAt.State is CellState.Hit)
+        {
+            result.HitState = HitState.Hit;
+
+            var wasWholeShipDestroyed = playingField.WasWholeShipDestroyed(cellFiredAt);
+
+            if (wasWholeShipDestroyed)
+            {
+                result.HitState = HitState.WholeShipDestroyed;
+
+                var areAllShipsDestroyed = playingField.AreAllShipsDestroyed();
+
+                if (areAllShipsDestroyed)
+                {
+                    game.EndGame();
+
+                    result.Winner = game.Winner;
+
+                    this.FinishedGames.Add(game.GameId, game);
+                    this.ActiveGames.Remove(game.GameId);
+                }
+            }
+        }
+        else
+        {
+            result.HitState = HitState.Water;
+
+            game.ChangeNextMovePlayer();
+        }
+
+        return result;
     }
 }

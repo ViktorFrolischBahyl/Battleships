@@ -1,10 +1,6 @@
 ﻿namespace Battleships.Models.Game;
 
-public class Cell
+public class Cell : Dimensions
 {
-    public int X { get; init; }
-
-    public int Y { get; init; }
-
     public CellState State { get; set; } = CellState.Water;
 }
