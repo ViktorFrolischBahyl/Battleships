@@ -3,14 +3,21 @@ using Battleships.Services;
 using Battleships.Services.Interfaces;
 using NLog;
 using NLog.Web;
+using System.Reflection;
 
 namespace Battleships;
 
+/// <summary>
+/// Program class for the Battleships application.
+/// </summary>
 public class Program
 {
-    // TODO > Add logging
-    // TODO > Add error handling + try catch
+    // TODO > Game storage provider (in-memory, file, database, etc.)
 
+    /// <summary>
+    /// Defines the entry point of the application.
+    /// </summary>
+    /// <param name="args">The arguments.</param>
     public static void Main(string[] args)
     {
         var logger = LogManager.Setup().LoadConfigurationFromAppSettings().GetCurrentClassLogger();
@@ -44,6 +51,13 @@ public class Program
         }
     }
 
+    /// <summary>
+    /// Creates the host builder.
+    /// </summary>
+    /// <param name="args">The arguments.</param>
+    /// <returns>
+    /// Web application builder with services registered.
+    /// </returns>
     public static WebApplicationBuilder CreateHostBuilder(string[] args)
     {
         var builder = WebApplication.CreateBuilder(args);
@@ -55,7 +69,12 @@ public class Program
         builder.Services.AddControllers();
 
         builder.Services.AddEndpointsApiExplorer();
-        builder.Services.AddSwaggerGen();
+        builder.Services.AddSwaggerGen(options =>
+        {
+            // using System.Reflection;
+            var xmlFilename = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+            options.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, xmlFilename));
+        });
 
         builder.Logging.ClearProviders();
         builder.Host.UseNLog();

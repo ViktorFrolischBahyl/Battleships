@@ -1,5 +1,4 @@
-﻿using Battleships.Controllers;
-using Battleships.Models;
+﻿using Battleships.Models;
 using Battleships.Models.Game;
 using Battleships.Models.Settings;
 using Battleships.Services.Interfaces;
@@ -7,16 +6,45 @@ using Microsoft.Extensions.Options;
 
 namespace Battleships.Services;
 
+/// <summary>
+/// Implementation of the <see cref="IBattleshipsService" /> interface for managing battleship games.
+/// </summary>
+/// <seealso cref="Battleships.Services.Interfaces.IBattleshipsService" />
 public class BattleshipsService(ILogger<BattleshipsService> logger, IOptions<ApplicationSettings> settings) : IBattleshipsService
 {
+    /// <summary>
+    /// Gets the settings.
+    /// </summary>
+    /// <value>
+    /// The settings.
+    /// </value>
     private ApplicationSettings Settings { get; } = settings?.Value ?? throw new ArgumentNullException(nameof(settings));
 
+    /// <summary>
+    /// Gets the logger.
+    /// </summary>
+    /// <value>
+    /// The logger.
+    /// </value>
     private ILogger<BattleshipsService> Logger { get; } = logger ?? throw new ArgumentNullException(nameof(logger));
 
+    /// <summary>
+    /// Gets the active games.
+    /// </summary>
+    /// <value>
+    /// The active games.
+    /// </value>
     private Dictionary<string, Game> ActiveGames { get; } = [];
 
+    /// <summary>
+    /// Gets the finished games.
+    /// </summary>
+    /// <value>
+    /// The finished games.
+    /// </value>
     private Dictionary<string, Game> FinishedGames { get; } = [];
 
+    /// <inheritdoc />
     public Game CreateGame(CreateGameInput input)
     {
         _ = input ?? throw new ArgumentNullException(nameof(input));
@@ -58,6 +86,7 @@ public class BattleshipsService(ILogger<BattleshipsService> logger, IOptions<App
         }
     }
 
+    /// <inheritdoc />
     public Game GetActiveGame(string gameId)
     {
         if (string.IsNullOrEmpty(gameId)) throw new ArgumentException("Value cannot be null or empty.", nameof(gameId));
@@ -77,6 +106,7 @@ public class BattleshipsService(ILogger<BattleshipsService> logger, IOptions<App
         throw ex;
     }
 
+    /// <inheritdoc />
     public FireOutput Fire(FireInput input)
     {
         _ = input ?? throw new ArgumentNullException(nameof(input));

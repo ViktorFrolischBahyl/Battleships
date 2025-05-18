@@ -3,8 +3,16 @@ using System.ComponentModel;
 
 namespace Battleships.Models.Game;
 
+/// <summary>
+/// Model representing the playing field of the game.
+/// </summary>
 public class PlayingField
 {
+    /// <summary>
+    /// Initializes a new instance of the <see cref="PlayingField"/> class.
+    /// </summary>
+    /// <param name="playingFieldDimensions">The playing field dimensions.</param>
+    /// <exception cref="System.ArgumentNullException">playingFieldDimensions</exception>
     public PlayingField(Dimensions playingFieldDimensions)
     {
         this.PlayingFieldDimensions = playingFieldDimensions ?? throw new ArgumentNullException(nameof(playingFieldDimensions));
@@ -25,12 +33,34 @@ public class PlayingField
         }
     }
 
+    /// <summary>
+    /// Gets the playing field dimensions.
+    /// </summary>
+    /// <value>
+    /// The playing field dimensions.
+    /// </value>
     public Dimensions PlayingFieldDimensions { get; }
 
+    /// <summary>
+    /// Gets the grid.
+    /// </summary>
+    /// <value>
+    /// The grid.
+    /// </value>
     public Cell[,] Grid { get; }
 
+    /// <summary>
+    /// Gets the fleet.
+    /// </summary>
+    /// <value>
+    /// The fleet.
+    /// </value>
     public List<Ship> Fleet { get; } = [];
 
+    /// <summary>
+    /// Randomly place the ships.
+    /// </summary>
+    /// <param name="shipsToPlace">The ships to place.</param>
     public void RandomlyPlaceShips(List<Ship> shipsToPlace)
     {
         var random = new Random();
@@ -62,6 +92,10 @@ public class PlayingField
         });
     }
 
+    /// <summary>
+    /// Gets the string representation of grid.
+    /// </summary>
+    /// <returns>String representing the grid.</returns>
     public string GetStringRepresentationOfGrid()
     {
         var gridRepresentation = this.GetStringRepresentationOfGrid(water: ' ', ship: 'O', hit: 'X', miss: '-');
@@ -69,6 +103,10 @@ public class PlayingField
         return gridRepresentation;
     }
 
+    /// <summary>
+    /// Gets the string representation of grid with hidden ships.
+    /// </summary>
+    /// <returns>String representing the grid with hidden ships.</returns>
     public string GetStringRepresentationOfGridWithHiddenShips()
     {
         var gridRepresentation = this.GetStringRepresentationOfGrid(water: ' ', ship: ' ', hit: 'X', miss: '-');
@@ -76,6 +114,11 @@ public class PlayingField
         return gridRepresentation;
     }
 
+    /// <summary>
+    /// Fires at the specified cell dimensions.
+    /// </summary>
+    /// <param name="cellDimensions">The cell dimensions.</param>
+    /// <returns>Representation of the cell fired at.</returns>
     public Cell Fire(Dimensions cellDimensions)
     {
         _ = cellDimensions ?? throw new ArgumentNullException(nameof(cellDimensions));
@@ -104,6 +147,11 @@ public class PlayingField
         }
     }
 
+    /// <summary>
+    /// Indicates whether the cell is part of a ship that is completely sunk.
+    /// </summary>
+    /// <param name="cell">The cell.</param>
+    /// <returns><c>true</c> if ship corresponding to the cell is completely sunk; otherwise, <c>false</c>.</returns>
     public bool WasWholeShipDestroyed(Cell cell)
     {
         _ = cell ?? throw new ArgumentNullException(nameof(cell));
@@ -118,11 +166,22 @@ public class PlayingField
         return this.WasWholeShipDestroyed(ship);
     }
 
+    /// <summary>
+    /// Indicates whether all the ships in the fleet have been sunk.
+    /// </summary>
+    /// <returns><c>true</c> if all ships in the fleet have been sunk; otherwise, <c>false</c>.</returns>
     public bool AreAllShipsDestroyed()
     {
         return this.Fleet.All(this.WasWholeShipDestroyed);
     }
 
+    /// <summary>
+    /// Indicates whether the ship is completely sunk.
+    /// </summary>
+    /// <param name="ship">The ship.</param>
+    /// <returns>
+    /// True if the ship is completely sunk; false otherwise.
+    /// </returns>
     private bool WasWholeShipDestroyed(Ship ship)
     {
         _ = ship ?? throw new ArgumentNullException(nameof(ship));
@@ -130,6 +189,11 @@ public class PlayingField
         return ship.Position.All(cell => cell.State == CellState.Hit);
     }
 
+    /// <summary>
+    /// Gets all the possible positions for the ship.
+    /// </summary>
+    /// <param name="ship">The ship.</param>
+    /// <returns>Lit of all possible positions for the provided ship.</returns>
     private List<List<Cell>> GetPossiblePositions(Ship ship)
     {
         var positions = new List<List<Cell>>();
@@ -184,6 +248,14 @@ public class PlayingField
         return positions;
     }
 
+    /// <summary>
+    /// Determines whether the specified position is valid in Battleships game.
+    /// </summary>
+    /// <param name="position">The position.</param>
+    /// <returns>
+    ///   <c>true</c> if the specified position is valid in Battleships game; otherwise, <c>false</c>.
+    /// </returns>
+    /// <exception cref="System.ArgumentNullException">position</exception>
     private bool IsPositionValid(List<Cell> position)
     {
         _ = position ?? throw new ArgumentNullException(nameof(position));
@@ -204,6 +276,13 @@ public class PlayingField
         return true;
     }
 
+    /// <summary>
+    /// Determines whether the adjacent cells are all water.
+    /// </summary>
+    /// <param name="cell">The cell.</param>
+    /// <returns>
+    ///   <c>true</c> if the adjacent cells are all water; otherwise, <c>false</c>.
+    /// </returns>
     private bool AdjacentCellsAreWater(Cell cell)
     {
         _ = cell ?? throw new ArgumentNullException(nameof(cell));
@@ -266,6 +345,14 @@ public class PlayingField
         return true;
     }
 
+    /// <summary>
+    /// Gets the string representation of the grid, with specified characters for all the states.
+    /// </summary>
+    /// <param name="water">The water.</param>
+    /// <param name="ship">The ship.</param>
+    /// <param name="hit">The hit.</param>
+    /// <param name="miss">The miss.</param>
+    /// <returns>String representing the grid.</returns>
     private string GetStringRepresentationOfGrid(char water, char ship, char hit, char miss)
     {
         var gridRepresentation = string.Empty;

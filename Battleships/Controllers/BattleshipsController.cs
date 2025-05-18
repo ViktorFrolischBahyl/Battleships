@@ -7,15 +7,37 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Battleships.Controllers;
 
+/// <summary>
+/// 
+/// </summary>
+/// <seealso cref="Microsoft.AspNetCore.Mvc.ControllerBase" />
 [ApiController]
 [Route("api/[controller]/[action]")]
 public class BattleshipsController(ILogger<BattleshipsController> logger, IBattleshipsService battleshipsService)
     : ControllerBase
 {
+    /// <summary>
+    /// Gets the logger.
+    /// </summary>
+    /// <value>
+    /// The logger.
+    /// </value>
     private ILogger<BattleshipsController> Logger { get; } = logger ?? throw new ArgumentNullException(nameof(logger));
 
+    /// <summary>
+    /// Gets the battleships service.
+    /// </summary>
+    /// <value>
+    /// The battleships service.
+    /// </value>
     private IBattleshipsService BattleshipsService { get; } = battleshipsService ?? throw new ArgumentNullException(nameof(battleshipsService));
 
+    /// <summary>
+    /// Checks whether Battleships controller is available.
+    /// </summary>
+    /// <returns>Response to the request.</returns>
+    /// <response code="200">Battleships controller ready.</response>
+    /// <response code="500">Battleships controller not ready.</response>
     [HttpGet]
     [ActionName("health-check")]
     public ActionResult<string> Get()
@@ -25,6 +47,16 @@ public class BattleshipsController(ILogger<BattleshipsController> logger, IBattl
         return this.Ok();
     }
 
+    /// <summary>
+    /// Starts new game.
+    /// </summary>
+    /// <param name="input">The input.</param>
+    /// <returns>
+    /// Game created specification.
+    /// </returns>
+    /// <response code="200">Game started.</response>
+    /// <response code="400">Bad request.</response>
+    /// <response code="500">Unrecognized internal server error.</response>
     [HttpPost]
     [ActionName("start-game")]
     public ActionResult<CreateGameOutput> Post([FromBody] CreateGameInput input)
@@ -56,6 +88,16 @@ public class BattleshipsController(ILogger<BattleshipsController> logger, IBattl
         }
     }
 
+    /// <summary>
+    /// Sends fire action to the specified game.
+    /// </summary>
+    /// <param name="gameId">The game identifier.</param>
+    /// <param name="cellDimensions">The cell dimensions.</param>
+    /// <returns>Information about the game state after the fire action.</returns>
+    /// <response code="200">Game updated.</response>
+    /// <response code="400">Bad request.</response>
+    /// <response code="404">Game not found.</response>
+    /// <response code="500">Unrecognized internal server error.</response>
     [HttpPut]
     [ActionName("next-move/{gameId}")]
     public ActionResult<FireOutput> Put(
