@@ -1,4 +1,6 @@
-﻿namespace Battleships.Models;
+﻿using System.Diagnostics;
+
+namespace Battleships.Models;
 
 public class PlayingField
 {
@@ -20,6 +22,34 @@ public class PlayingField
                 };
             }
         }
+    }
+
+    public string GetStringRepresentationOfGrid()
+    {
+        string gridRepresentation = string.Empty;
+
+        for (int y = 0; y < this.PlayingFieldDimensions.Y; y++)
+        {
+            var row = string.Empty;
+
+            for (int x = 0; x < this.PlayingFieldDimensions.X; x++)
+            {
+                row += this.Grid[x, y].State switch
+                {
+                    CellState.Water => " ",
+                    CellState.Ship => "O",
+                    CellState.Hit => "X",
+                    CellState.Miss => "-",
+                    _ => throw new ArgumentOutOfRangeException(nameof(Cell.State), $"Unknown cell state: {this.Grid[x, y].State}"),
+                };
+
+                row += "|";
+            }
+
+            gridRepresentation += row + Environment.NewLine;
+        }
+
+        return gridRepresentation;
     }
 
     private Dimensions PlayingFieldDimensions { get; }
@@ -61,7 +91,6 @@ public class PlayingField
 
     private List<List<Cell>> GetPossiblePositions(Ship ship)
     {
-        // TODO > Add logic for finding possible positions
         var positions = new List<List<Cell>>();
 
         var length = ship.Length;
@@ -70,23 +99,115 @@ public class PlayingField
         {
             for (int y = 0; y < this.PlayingFieldDimensions.Y; y++)
             {
-                if (this.Grid[x,y].State is CellState.Water)
+                var horizontalPosition = new List<Cell>();
+                
+                for (int i = 0; i < length; i++)
                 {
-                    if (x - 1 >= 0)
+                    if (x + i >= this.PlayingFieldDimensions.X)
                     {
-
+                        break;
                     }
 
-                    if (y - 1 >= 0)
-                    {
+                    horizontalPosition.Add(this.Grid[x + i, y]);
+                }
 
+                if (horizontalPosition.Count == length && this.IsPositionValid(horizontalPosition))
+                {
+                    positions.Add(horizontalPosition);
+                }
+
+                if (length == 1)
+                {
+                    continue;
+                }
+
+                var verticalPosition = new List<Cell>();
+
+                for (int i = 0; i < length; i++)
+                {
+                    if (y + i >= this.PlayingFieldDimensions.Y)
+                    {
+                        break;
                     }
 
-                    var position = new List<Cell>();
+                    verticalPosition.Add(this.Grid[x, y + i]);
+                }
+
+                if (verticalPosition.Count == length && this.IsPositionValid(verticalPosition))
+                {
+                    positions.Add(verticalPosition);
                 }
             }
         }
 
         return positions;
+    }
+
+    private bool IsPositionValid(List<Cell> position)
+    {
+        _ = position ?? throw new ArgumentNullException(nameof(position));
+
+        foreach (var cell in position)
+        {
+            if (this.Grid[cell.X, cell.Y].State != CellState.Water)
+            {
+                return false;
+            }
+
+            if (!this.AdjacentCellsAreWater(cell))
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private bool AdjacentCellsAreWater(Cell cell)
+    {
+        _ = cell ?? throw new ArgumentNullException(nameof(cell));
+
+        var x = cell.X;
+        var y = cell.Y;
+
+        if (x - 1 >= 0
+            && this.Grid[x - 1, y].State != CellState.Water)
+        {
+            return false;
+        }
+
+        if (y - 1 >= 0
+            && this.Grid[x, y - 1].State != CellState.Water)
+        {
+            return false;
+        }
+
+        if (x - 1 >= 0
+            && y - 1 >= 0 
+            && this.Grid[x - 1, y - 1].State != CellState.Water)
+        {
+            return false;
+        }
+
+        if (x + 1 < this.PlayingFieldDimensions.X
+            && this.Grid[x + 1, y].State != CellState.Water)
+        {
+            return false;
+        }
+
+        if (y + 1 < this.PlayingFieldDimensions.Y
+            && this.Grid[x, y + 1].State != CellState.Water)
+        {
+            return false;
+        }
+
+        if (x + 1 < this.PlayingFieldDimensions.X
+            && y + 1 < this.PlayingFieldDimensions.Y
+            && this.Grid[x + 1, y + 1].State != CellState.Water)
+        {
+            return false;
+        }
+
+        return true;
     }
 }

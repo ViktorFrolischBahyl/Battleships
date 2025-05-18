@@ -35,8 +35,8 @@ public class BattleshipsController : ControllerBase
 
         this.logger.LogDebug("start-game method initiated.");
 
-        this.BattleshipsService.CreateGame(createGameInput);
+        var createdGame = this.BattleshipsService.CreateGame(createGameInput);
 
-        return this.Ok();
+        return this.Ok(createdGame.GameId);
     }
 }
