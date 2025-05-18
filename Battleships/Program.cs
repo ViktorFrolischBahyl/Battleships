@@ -8,7 +8,7 @@ namespace Battleships;
 
 public class Program
 {
-    // TODO > Add tests
+    // TODO > Add more tests
     // TODO > Add logging
     // TODO > Add error handling + try catch
 
@@ -19,19 +19,7 @@ public class Program
 
         try
         {
-            var builder = WebApplication.CreateBuilder(args);
-
-            builder.Services.Configure<ApplicationSettings>(builder.Configuration.GetSection(nameof(ApplicationSettings)));
-
-            builder.Services.AddScoped<IBattleshipsService, BattleshipsService>();
-
-            builder.Services.AddControllers();
-
-            builder.Services.AddEndpointsApiExplorer();
-            builder.Services.AddSwaggerGen();
-
-            builder.Logging.ClearProviders();
-            builder.Host.UseNLog();
+            var builder = CreateHostBuilder(args);
 
             var app = builder.Build();
 
@@ -55,5 +43,24 @@ public class Program
         {
             LogManager.Shutdown();
         }
+    }
+
+    public static WebApplicationBuilder CreateHostBuilder(string[] args)
+    {
+        var builder = WebApplication.CreateBuilder(args);
+
+        builder.Services.Configure<ApplicationSettings>(builder.Configuration.GetSection(nameof(ApplicationSettings)));
+
+        builder.Services.AddScoped<IBattleshipsService, BattleshipsService>();
+
+        builder.Services.AddControllers();
+
+        builder.Services.AddEndpointsApiExplorer();
+        builder.Services.AddSwaggerGen();
+
+        builder.Logging.ClearProviders();
+        builder.Host.UseNLog();
+
+        return builder;
     }
 }

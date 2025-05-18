@@ -1,12 +1,16 @@
-﻿using Battleships.Models.Game;
+﻿using System.ComponentModel.DataAnnotations;
+using Battleships.Models.Game;
 
 namespace Battleships.Models;
 
 public class CreateGameInput
 {
-    public Player? PlayerOne { get; set; }
+    [Required]
+    public Player PlayerOne { get; set; }
 
-    public Player? PlayerTwo { get; set; }
+    [Required]
+    public Player PlayerTwo { get; set; }
 
-    public Dimensions? PlayingFieldDimensions { get; set; }
+    [Required]
+    public Dimensions PlayingFieldDimensions { get; set; }
 }

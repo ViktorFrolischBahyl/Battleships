@@ -1,33 +1,28 @@
 ﻿namespace Battleships.Models.Game;
 
-public class Game
+public class Game(Player playerOne, Player playerTwo)
 {
-    public Game(Player playerOne, Player playerTwo)
+    public string GameId { get; } = Guid.NewGuid().ToString("N");
+
+    public Player PlayerOne { get; } = playerOne ?? throw new ArgumentNullException(nameof(playerOne));
+
+    public Player PlayerTwo { get; } = playerTwo ?? throw new ArgumentNullException(nameof(playerTwo));
+
+    public PlayingField? PlayerOneField { get; private set; }
+
+    public PlayingField? PlayerTwoField { get; private set; }
+
+    public void GeneratePlayersFields(List<Ship> shipsToPlace, Dimensions playingFieldDimensions)
     {
-        PlayerOne = playerOne;
-        PlayerTwo = playerTwo;
+        _ = playingFieldDimensions ?? throw new ArgumentNullException(nameof(playingFieldDimensions));
+        _ = shipsToPlace ?? throw new ArgumentNullException(nameof(shipsToPlace));
 
-        GameId = Guid.NewGuid().ToString("N");
-    }
+        this.PlayerOneField = new PlayingField(playingFieldDimensions);
 
-    public string GameId { get; }
+        this.PlayerOneField.RandomlyPlaceShips(shipsToPlace);
 
-    private Player PlayerOne { get; }
+        this.PlayerTwoField = new PlayingField(playingFieldDimensions);
 
-    private Player PlayerTwo { get; }
-
-    private PlayingField? PlayerOneField { get; set; }
-
-    private PlayingField? PlayerTwoField { get; set; }
-
-    public void GeneratePlayersFields(List<Ship> shipsToRandomize, Dimensions playingFieldDimensions)
-    {
-        PlayerOneField = new PlayingField(playingFieldDimensions);
-
-        PlayerOneField.RandomizeShips(shipsToRandomize);
-
-        PlayerTwoField = new PlayingField(playingFieldDimensions);
-
-        PlayerTwoField.RandomizeShips(shipsToRandomize);
+        this.PlayerTwoField.RandomlyPlaceShips(shipsToPlace);
     }
 }

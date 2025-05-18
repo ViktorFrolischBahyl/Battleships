@@ -1,6 +1,9 @@
-﻿namespace Battleships.Models.Game;
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace Battleships.Models.Game;
 
 public class Player
 {
-    public string? Name { get; set; }
+    [Required]
+    public string Name { get; set; }
 }
