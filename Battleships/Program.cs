@@ -8,14 +8,13 @@ namespace Battleships;
 
 public class Program
 {
-    // TODO > Add more tests
     // TODO > Add logging
     // TODO > Add error handling + try catch
 
     public static void Main(string[] args)
     {
         var logger = LogManager.Setup().LoadConfigurationFromAppSettings().GetCurrentClassLogger();
-        logger.Debug("Battleships main inicialization started.");
+        logger.Debug("Battleships main initialization started.");
 
         try
         {
@@ -36,7 +35,7 @@ public class Program
         }
         catch (Exception ex)
         {
-            logger.Error(ex, "Battleships main inicialization ended with error.");
+            logger.Error(ex, "Battleships main initialization ended with error.");
             throw;
         }
         finally

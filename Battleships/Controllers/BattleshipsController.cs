@@ -1,4 +1,7 @@
+using System.ComponentModel.DataAnnotations;
 using Battleships.Models;
+using Battleships.Models.Exceptions;
+using Battleships.Models.Game;
 using Battleships.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
@@ -24,30 +27,79 @@ public class BattleshipsController(ILogger<BattleshipsController> logger, IBattl
 
     [HttpPost]
     [ActionName("start-game")]
-    public ActionResult<CreateGameOutput> Post([FromBody] CreateGameInput createGameInput)
+    public ActionResult<CreateGameOutput> Post([FromBody] CreateGameInput input)
     {
-        _ = createGameInput ?? throw new ArgumentNullException(nameof(createGameInput));
+        _ = input ?? throw new ArgumentNullException(nameof(input));
 
-        this.Logger.LogDebug("start-game method initiated.");
-
-        var createdGame = this.BattleshipsService.CreateGame(createGameInput);
-
-        return this.Ok(new CreateGameOutput()
+        try
         {
-            GameId = createdGame.GameId,
-        });
+            if (input.PlayerOne.Name == input.PlayerTwo.Name)
+            {
+                return this.BadRequest($"Player One and Two cannot have same name!");
+            }
+
+            this.Logger.LogDebug("start-game method initiated.");
+
+            var createdGame = this.BattleshipsService.CreateGame(input);
+
+            this.Logger.LogDebug("start-game method finished.");
+
+            return this.Ok(new CreateGameOutput()
+            {
+                GameId = createdGame.GameId,
+            });
+        }
+        catch (Exception ex)
+        {
+            this.Logger.LogError(ex, "start-game method finished with errors.");
+            throw;
+        }
     }
 
     [HttpPut]
-    [ActionName("next-move")]
-    public ActionResult<FireOutput> Put([FromBody] FireInput fireInput)
+    [ActionName("next-move/{gameId}")]
+    public ActionResult<FireOutput> Put(
+        [FromRoute]
+        [Required]
+        string gameId,
+        [FromBody]
+        [Required]
+        Dimensions cellDimensions)
     {
-        _ = fireInput ?? throw new ArgumentNullException(nameof(fireInput));
+        _ = cellDimensions ?? throw new ArgumentNullException(nameof(cellDimensions));
+        _ = gameId ?? throw new ArgumentNullException(nameof(gameId));
 
-        this.Logger.LogDebug("next-move method initiated.");
+        try
+        {
+            this.Logger.LogDebug("next-move method initiated.");
 
-        var result = this.BattleshipsService.Fire(fireInput);
+            var input = new FireInput(gameId, cellDimensions);
 
-        return this.Ok(result);
+            var result = this.BattleshipsService.Fire(input);
+
+            this.Logger.LogDebug("next-move method finished.");
+
+            return this.Ok(result);
+        }
+        catch (KeyNotFoundException ex)
+        {
+            this.Logger.LogError(ex, "next-move method finished with errors.");
+            return this.NotFound(ex.Message);
+        }
+        catch (AlreadyFiredAtException ex)
+        {
+            this.Logger.LogError(ex, "next-move method finished with errors.");
+            return this.BadRequest(ex.Message);
+        }
+        catch (OutsideOfDefinedPlayingField ex)
+        {
+            this.Logger.LogError(ex, "next-move method finished with errors.");
+            return this.BadRequest(ex.Message);
+        }
+        catch (Exception ex)
+        {
+            this.Logger.LogError(ex, "next-move method finished with errors.");
+            throw;
+        }
     }
 }

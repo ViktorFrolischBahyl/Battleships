@@ -1,4 +1,5 @@
-﻿using System.ComponentModel;
+﻿using Battleships.Models.Exceptions;
+using System.ComponentModel;
 
 namespace Battleships.Models.Game;
 
@@ -10,9 +11,9 @@ public class PlayingField
 
         this.Grid = new Cell[playingFieldDimensions.X, playingFieldDimensions.Y];
 
-        for (int x = 0; x < this.PlayingFieldDimensions.X; x++)
+        for (var x = 0; x < this.PlayingFieldDimensions.X; x++)
         {
-            for (int y = 0; y < this.PlayingFieldDimensions.Y; y++)
+            for (var y = 0; y < this.PlayingFieldDimensions.Y; y++)
             {
                 this.Grid[x, y] = new Cell()
                 {
@@ -63,33 +64,14 @@ public class PlayingField
 
     public string GetStringRepresentationOfGrid()
     {
-        string gridRepresentation = string.Empty;
+        var gridRepresentation = this.GetStringRepresentationOfGrid(water: ' ', ship: 'O', hit: 'X', miss: '-');
 
-        for (int y = 0; y < this.PlayingFieldDimensions.Y; y++)
-        {
-            var row = string.Empty;
+        return gridRepresentation;
+    }
 
-            for (int x = 0; x < this.PlayingFieldDimensions.X; x++)
-            {
-                if (x == 0)
-                {
-                    row += "|";
-                }
-
-                row += this.Grid[x, y].State switch
-                {
-                    CellState.Water => " ",
-                    CellState.Ship => "O",
-                    CellState.Hit => "X",
-                    CellState.Miss => "-",
-                    _ => throw new InvalidEnumArgumentException(nameof(Cell.State), (int)this.Grid[x, y].State, typeof(CellState)),
-                };
-
-                row += "|";
-            }
-
-            gridRepresentation += row + Environment.NewLine;
-        }
+    public string GetStringRepresentationOfGridWithHiddenShips()
+    {
+        var gridRepresentation = this.GetStringRepresentationOfGrid(water: ' ', ship: ' ', hit: 'X', miss: '-');
 
         return gridRepresentation;
     }
@@ -101,7 +83,7 @@ public class PlayingField
         if (cellDimensions.X < 0 || cellDimensions.X >= this.PlayingFieldDimensions.X
             || cellDimensions.Y < 0 || cellDimensions.Y >= this.PlayingFieldDimensions.Y)
         {
-            throw new InvalidOperationException($"Dimension (X:{cellDimensions.X}, Y:{cellDimensions.Y}) are outside of defined playing field!");
+            throw new OutsideOfDefinedPlayingField($"Cell (X:{cellDimensions.X}, Y:{cellDimensions.Y}) is outside of defined playing field!");
         }
 
         var cell = this.Grid[cellDimensions.X, cellDimensions.Y];
@@ -116,7 +98,7 @@ public class PlayingField
                 return cell;
             case CellState.Hit:
             case CellState.Miss:
-                throw new InvalidOperationException($"Cell (X:{cellDimensions.X}, Y:{cellDimensions.Y}) has already been fired at!");
+                throw new AlreadyFiredAtException($"Cell (X:{cellDimensions.X}, Y:{cellDimensions.Y}) has already been fired at!");
             default:
                 throw new InvalidEnumArgumentException(nameof(Cell.State), (int)cell.State, typeof(CellState));
         }
@@ -154,13 +136,13 @@ public class PlayingField
 
         var length = ship.Length;
 
-        for (int x = 0; x < this.PlayingFieldDimensions.X; x++)
+        for (var x = 0; x < this.PlayingFieldDimensions.X; x++)
         {
-            for (int y = 0; y < this.PlayingFieldDimensions.Y; y++)
+            for (var y = 0; y < this.PlayingFieldDimensions.Y; y++)
             {
                 var horizontalPosition = new List<Cell>();
 
-                for (int i = 0; i < length; i++)
+                for (var i = 0; i < length; i++)
                 {
                     if (x + i >= this.PlayingFieldDimensions.X)
                     {
@@ -182,7 +164,7 @@ public class PlayingField
 
                 var verticalPosition = new List<Cell>();
 
-                for (int i = 0; i < length; i++)
+                for (var i = 0; i < length; i++)
                 {
                     if (y + i >= this.PlayingFieldDimensions.Y)
                     {
@@ -282,5 +264,38 @@ public class PlayingField
         }
 
         return true;
+    }
+
+    private string GetStringRepresentationOfGrid(char water, char ship, char hit, char miss)
+    {
+        var gridRepresentation = string.Empty;
+
+        for (var y = 0; y < this.PlayingFieldDimensions.Y; y++)
+        {
+            var row = string.Empty;
+
+            for (var x = 0; x < this.PlayingFieldDimensions.X; x++)
+            {
+                if (x == 0)
+                {
+                    row += '|';
+                }
+
+                row += this.Grid[x, y].State switch
+                {
+                    CellState.Water => water,
+                    CellState.Ship => ship,
+                    CellState.Hit => hit,
+                    CellState.Miss => miss,
+                    _ => throw new InvalidEnumArgumentException(nameof(Cell.State), (int)this.Grid[x, y].State, typeof(CellState)),
+                };
+
+                row += '|';
+            }
+
+            gridRepresentation += row + Environment.NewLine;
+        }
+
+        return gridRepresentation;
     }
 }

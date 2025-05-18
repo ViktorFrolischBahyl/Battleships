@@ -68,11 +68,7 @@ public sealed class BattleshipsServiceTests
 
         Assert.IsNotNull(waterCell);
 
-        var input = new FireInput()
-        {
-            GameId = createdGame.GameId,
-            CellDimensions = waterCell,
-        };
+        var input = new FireInput(createdGame.GameId, waterCell);
 
         Trace.WriteLine($"Player '{createdGame.NextMovePlayer.Name}' firing at (X:{waterCell.X}, Y:{waterCell.Y}).");
 
@@ -105,11 +101,7 @@ public sealed class BattleshipsServiceTests
 
         Assert.IsNotNull(shipCell);
 
-        var input = new FireInput()
-        {
-            GameId = createdGame.GameId,
-            CellDimensions = shipCell,
-        };
+        var input = new FireInput(createdGame.GameId, shipCell);
 
         Trace.WriteLine($"Player '{createdGame.NextMovePlayer.Name}' firing at (X:{shipCell.X}, Y:{shipCell.Y}).");
 
@@ -142,11 +134,7 @@ public sealed class BattleshipsServiceTests
 
         shipToFireAt.Position.ForEach(cell =>
         {
-            var input = new FireInput()
-            {
-                GameId = createdGame.GameId,
-                CellDimensions = cell,
-            };
+            var input = new FireInput(createdGame.GameId, cell);
 
             Trace.WriteLine($"Player '{createdGame.NextMovePlayer.Name}' firing at (X:{cell.X}, Y:{cell.Y}).");
 
@@ -176,11 +164,7 @@ public sealed class BattleshipsServiceTests
 
         Assert.IsNotNull(waterCell);
 
-        var input = new FireInput()
-        {
-            GameId = createdGame.GameId,
-            CellDimensions = waterCell,
-        };
+        var input = new FireInput(createdGame.GameId, waterCell);
 
         Trace.WriteLine($"Player '{createdGame.NextMovePlayer.Name}' firing at (X:{waterCell.X}, Y:{waterCell.Y}).");
 
@@ -196,11 +180,7 @@ public sealed class BattleshipsServiceTests
 
         shipToFireAt.Position.ForEach(cell =>
         {
-            input = new FireInput()
-            {
-                GameId = createdGame.GameId,
-                CellDimensions = cell,
-            };
+            input = new FireInput(createdGame.GameId, cell);
 
             Trace.WriteLine($"Player '{createdGame.NextMovePlayer.Name}' firing at (X:{cell.X}, Y:{cell.Y}).");
 
@@ -232,11 +212,7 @@ public sealed class BattleshipsServiceTests
         {
             ship.Position.ForEach(cell =>
             {
-                var input = new FireInput()
-                {
-                    GameId = createdGame.GameId,
-                    CellDimensions = cell,
-                };
+                var input = new FireInput(createdGame.GameId, cell);
 
                 Trace.WriteLine($"Player '{createdGame.NextMovePlayer.Name}' firing at (X:{cell.X}, Y:{cell.Y}).");
 
@@ -269,11 +245,7 @@ public sealed class BattleshipsServiceTests
 
         Assert.IsNotNull(waterCell);
 
-        var input = new FireInput()
-        {
-            GameId = createdGame.GameId,
-            CellDimensions = waterCell,
-        };
+        var input = new FireInput(createdGame.GameId, waterCell);
 
         Trace.WriteLine($"Player '{createdGame.NextMovePlayer.Name}' firing at (X:{waterCell.X}, Y:{waterCell.Y}).");
 
@@ -287,11 +259,7 @@ public sealed class BattleshipsServiceTests
         {
             ship.Position.ForEach(cell =>
             {
-                var input = new FireInput()
-                {
-                    GameId = createdGame.GameId,
-                    CellDimensions = cell,
-                };
+                input = new FireInput(createdGame.GameId, cell);
 
                 Trace.WriteLine($"Player '{createdGame.NextMovePlayer.Name}' firing at (X:{cell.X}, Y:{cell.Y}).");
 

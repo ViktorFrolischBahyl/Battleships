@@ -1,13 +1,10 @@
-﻿using System.ComponentModel.DataAnnotations;
-using Battleships.Models.Game;
+﻿using Battleships.Models.Game;
 
 namespace Battleships.Models;
 
-public class FireInput
+public class FireInput(string gameId, Dimensions cellDimensions)
 {
-    [Required]
-    public string GameId { get; set; }
+    public string GameId { get; } = gameId ?? throw new ArgumentNullException(nameof(gameId));
 
-    [Required]
-    public Dimensions CellDimensions { get; set; }
+    public Dimensions CellDimensions { get; } = cellDimensions ?? throw new ArgumentNullException(nameof(cellDimensions));
 }
