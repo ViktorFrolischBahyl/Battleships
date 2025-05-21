@@ -66,7 +66,9 @@ public class Program
 
         builder.Services.AddSingleton<ILoadShipsDefinitionsService, LoadShipsDefinitionsFromFileService>();
 
-        builder.Services.AddSingleton<IGamesStorageProvider, InMemoryGamesStorageProvider>();
+        builder.Services.AddKeyedSingleton<IGamesStorageProvider, InMemoryGamesStorageProvider>(nameof(GamesStorageProvider.InMemory));
+
+        builder.Services.AddSingleton<IGamesStorageProviderFactory, GamesStorageProviderFactory>();
 
         builder.Services.AddSingleton<IBattleshipsService, BattleshipsService>();
 

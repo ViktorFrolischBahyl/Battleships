@@ -15,7 +15,8 @@ public sealed class InMemoryGamesStorageProviderTests
 
         var host = builder.Build();
 
-        this.GamesStorageProvider = ActivatorUtilities.GetServiceOrCreateInstance<IGamesStorageProvider>(host.Services);
+        this.GamesStorageProvider = host.Services.GetKeyedService<IGamesStorageProvider>(nameof(Battleships.Models.Settings.GamesStorageProvider.InMemory));
+
         this.BattleshipsService = ActivatorUtilities.GetServiceOrCreateInstance<IBattleshipsService>(host.Services);
     }
 

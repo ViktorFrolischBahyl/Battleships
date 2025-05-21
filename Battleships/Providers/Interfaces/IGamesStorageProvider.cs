@@ -7,9 +7,6 @@ namespace Battleships.Providers.Interfaces;
 /// </summary>
 public interface IGamesStorageProvider
 {
-    // TODO > ADD > other providers: file, database, etc.
-    // TODO > ADD > option to use different providers
-
     /// <summary>
     /// Gets the active game.
     /// </summary>

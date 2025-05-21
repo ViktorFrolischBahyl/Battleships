@@ -14,7 +14,7 @@ namespace Battleships.Services;
 public class BattleshipsService(
     ILogger<BattleshipsService> logger,
     ILoadShipsDefinitionsService loadShipsDefinitionsService,
-    IGamesStorageProvider gamesStorageProvider)
+    IGamesStorageProviderFactory gamesStorageProviderFactory)
     : IBattleshipsService
 {
     /// <summary>
@@ -31,7 +31,7 @@ public class BattleshipsService(
     /// <value>
     /// The games storage provider.
     /// </value>
-    private IGamesStorageProvider GamesStorageProvider { get; } = gamesStorageProvider ?? throw new ArgumentNullException(nameof(gamesStorageProvider));
+    private IGamesStorageProviderFactory GamesStorageProviderFactory { get; } = gamesStorageProviderFactory ?? throw new ArgumentNullException(nameof(gamesStorageProviderFactory));
 
     /// <summary>
     /// Gets the load ships definitions service.
@@ -70,7 +70,7 @@ public class BattleshipsService(
 
             this.Logger.LogTrace($"Initialization of game {game.GameId} finished.");
 
-            this.GamesStorageProvider.StoreActiveGame(game);
+            this.GamesStorageProviderFactory.GetProvider().StoreActiveGame(game);
 
             this.Logger.LogDebug($"Method {nameof(this.CreateGame)} ended with game created {nameof(game.GameId)}={game.GameId}.");
 
@@ -95,7 +95,7 @@ public class BattleshipsService(
                                  $"{nameof(input.CellDimensions.X)}={input.CellDimensions.X}, " +
                                  $"{nameof(input.CellDimensions.Y)}={input.CellDimensions.Y}");
 
-            var game = this.GamesStorageProvider.GetActiveGame(input.GameId);
+            var game = this.GamesStorageProviderFactory.GetProvider().GetActiveGame(input.GameId);
 
             var playingField = game.GetNextMovePlayerPlayingField();
 
@@ -126,7 +126,7 @@ public class BattleshipsService(
 
                         result.Winner = game.Winner;
 
-                        this.GamesStorageProvider.EndActiveGame(game.GameId);
+                        this.GamesStorageProviderFactory.GetProvider().EndActiveGame(game.GameId);
                     }
                 }
             }
