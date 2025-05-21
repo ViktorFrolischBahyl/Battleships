@@ -74,7 +74,7 @@ public sealed class BattleshipsServiceTests
 
         var nextPlayerPlayingField = createdGame.GetNextMovePlayerPlayingField();
 
-        var shipToFireAt = nextPlayerPlayingField.Fleet.Find(ship => ship.Length > 1);
+        var shipToFireAt = nextPlayerPlayingField.Fleet.Find(ship => ship.GetNumberOfShipCells() > 1);
 
         Assert.IsNotNull(shipToFireAt);
 
@@ -107,7 +107,7 @@ public sealed class BattleshipsServiceTests
 
         var nextPlayerPlayingField = createdGame.GetNextMovePlayerPlayingField();
 
-        var shipToFireAt = nextPlayerPlayingField.Fleet.Find(ship => ship.Length > 1);
+        var shipToFireAt = nextPlayerPlayingField.Fleet.Find(ship => ship.GetNumberOfShipCells() > 1);
 
         Assert.IsNotNull(shipToFireAt);
 
@@ -153,7 +153,7 @@ public sealed class BattleshipsServiceTests
 
         nextPlayerPlayingField = createdGame.GetNextMovePlayerPlayingField();
 
-        var shipToFireAt = nextPlayerPlayingField.Fleet.Find(ship => ship.Length > 1);
+        var shipToFireAt = nextPlayerPlayingField.Fleet.Find(ship => ship.GetNumberOfShipCells() > 1);
 
         Assert.IsNotNull(shipToFireAt);
 

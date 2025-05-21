@@ -40,15 +40,15 @@ public sealed class PlayingFieldTests
 
         playingField.RandomlyPlaceShips(shipsToPlace);
 
-        Assert.AreEqual(4, playingField.Fleet.Count);
+        Assert.AreEqual(shipsToPlace.Count, playingField.Fleet.Count);
 
         playingField.Fleet.ForEach(ship =>
         {
             Assert.IsNotNull(ship);
             Assert.IsNotNull(ship.Position);
-            Assert.IsTrue(ship.Length > 0);
+            Assert.IsNotNull(ship.Shape);
             Assert.IsTrue(ship.Position.Count > 0);
-            Assert.IsTrue(ship.Length == ship.Position.Count);
+            Assert.IsTrue(ship.GetNumberOfShipCells() == ship.Position.Count);
             Assert.IsFalse(string.IsNullOrEmpty(ship.Type));
 
             ship.Position.ForEach(cell =>

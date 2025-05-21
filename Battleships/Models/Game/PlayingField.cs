@@ -8,6 +8,8 @@ namespace Battleships.Models.Game;
 /// </summary>
 public class PlayingField
 {
+    private int _randomizeAttemptsCount = 0;
+
     /// <summary>
     /// Initializes a new instance of the <see cref="PlayingField"/> class.
     /// </summary>
@@ -65,31 +67,56 @@ public class PlayingField
     {
         var random = new Random();
 
-        shipsToPlace.ForEach(shipToPlace =>
+        var orderedShips = shipsToPlace.OrderBy(ship => ship.GetNumberOfShipCells()).Reverse().ToList();
+        try
         {
-            var possiblePositions = this.GetPossiblePositions(shipToPlace);
-
-            if (possiblePositions.Count == 0)
+            orderedShips.ForEach(shipToPlace =>
             {
-                throw new InvalidOperationException($"Unable to fit all ships to the playing field with dimensions {this.PlayingFieldDimensions.X}x{this.PlayingFieldDimensions.Y}");
+                var possiblePositions = this.GetPossiblePositions(shipToPlace);
+
+                if (possiblePositions.Count == 0)
+                {
+                    throw new InvalidOperationException(
+                        $"Unable to fit all ships to the playing field with dimensions {this.PlayingFieldDimensions.X}x{this.PlayingFieldDimensions.Y}");
+                }
+
+                var randomPositionIndex = random.Next(possiblePositions.Count);
+
+                var randomPosition = possiblePositions.ElementAt(randomPositionIndex);
+
+                randomPosition.ForEach(cell => cell.State = CellState.Ship);
+
+                var shipToAdd = new Ship(shipToPlace.Shape)
+                {
+                    Type = shipToPlace.Type,
+                };
+
+                shipToAdd.Position.AddRange(randomPosition);
+
+                this.Fleet.Add(shipToAdd);
+            });
+        }
+        catch (InvalidOperationException ex)
+        {
+            if (ex.Message == $"Unable to fit all ships to the playing field with dimensions {this.PlayingFieldDimensions.X}x{this.PlayingFieldDimensions.Y}"
+                && this._randomizeAttemptsCount < 5)
+            {
+                this.ClearPlayingField();
+
+                shipsToPlace.ForEach(ship =>
+                {
+                    ship.Position.Clear();
+                });
+
+                this._randomizeAttemptsCount++;
+                
+                this.RandomlyPlaceShips(shipsToPlace);
             }
-
-            var randomPositionIndex = random.Next(possiblePositions.Count);
-
-            var randomPosition = possiblePositions.ElementAt(randomPositionIndex);
-
-            randomPosition.ForEach(cell => cell.State = CellState.Ship);
-
-            var shipToAdd = new Ship()
+            else
             {
-                Length = shipToPlace.Length,
-                Type = shipToPlace.Type,
-            };
-
-            shipToAdd.Position.AddRange(randomPosition);
-
-            this.Fleet.Add(shipToAdd);
-        });
+                throw;
+            }
+        }
     }
 
     /// <summary>
@@ -196,56 +223,239 @@ public class PlayingField
     /// <returns>Lit of all possible positions for the provided ship.</returns>
     private List<List<Cell>> GetPossiblePositions(Ship ship)
     {
+        _ = ship ?? throw new ArgumentNullException(nameof(ship));
+
         var positions = new List<List<Cell>>();
 
-        var length = ship.Length;
+        var numberOfShipCells = ship.GetNumberOfShipCells();
+
+        var distinctShapes = new List<Cell[,]>();
+
+        if (ship.Shape.GetLength(0) == 1 || ship.Shape.GetLength(1) == 1)
+        {
+            distinctShapes.Add(ship.Shape);
+        }
+        else
+        {
+            distinctShapes.AddRange(this.GetDistinctFlips(ship.Shape));
+        }
+
+        if (ship.Shape.GetLength(0) != ship.Shape.GetLength(1))
+        {
+            var transposedShape = this.TransposeShape(ship.Shape);
+
+            if (ship.Shape.GetLength(0) == 1 || ship.Shape.GetLength(1) == 1)
+            {
+                distinctShapes.Add(transposedShape);
+            }
+            else
+            {
+                distinctShapes.AddRange(this.GetDistinctFlips(transposedShape));
+            }
+        }
 
         for (var x = 0; x < this.PlayingFieldDimensions.X; x++)
         {
             for (var y = 0; y < this.PlayingFieldDimensions.Y; y++)
             {
-                var horizontalPosition = new List<Cell>();
-
-                for (var i = 0; i < length; i++)
+                distinctShapes.ForEach(shape =>
                 {
-                    if (x + i >= this.PlayingFieldDimensions.X)
+                    if (this.TryPlacingShape(shape, x, y, out var position)
+                        && position.Count == numberOfShipCells)
                     {
-                        break;
+                        positions.Add(position);
                     }
-
-                    horizontalPosition.Add(this.Grid[x + i, y]);
-                }
-
-                if (horizontalPosition.Count == length && this.IsPositionValid(horizontalPosition))
-                {
-                    positions.Add(horizontalPosition);
-                }
-
-                if (length == 1)
-                {
-                    continue;
-                }
-
-                var verticalPosition = new List<Cell>();
-
-                for (var i = 0; i < length; i++)
-                {
-                    if (y + i >= this.PlayingFieldDimensions.Y)
-                    {
-                        break;
-                    }
-
-                    verticalPosition.Add(this.Grid[x, y + i]);
-                }
-
-                if (verticalPosition.Count == length && this.IsPositionValid(verticalPosition))
-                {
-                    positions.Add(verticalPosition);
-                }
+                });
             }
         }
 
         return positions;
+    }
+
+    /// <summary>
+    /// Tries placing the shape. If shape can be placed, the position is returned.
+    /// </summary>
+    /// <param name="shape">The shape.</param>
+    /// <param name="startingCellX">The starting cell x.</param>
+    /// <param name="startingCellY">The starting cell y.</param>
+    /// <param name="position">The position.</param>
+    /// <returns>
+    ///   <c>true</c> if the provided shape can be placed on the grid; otherwise, <c>false</c>.
+    /// </returns>
+    private bool TryPlacingShape(Cell[,] shape, int startingCellX, int startingCellY, out List<Cell> position)
+    {
+        position = [];
+
+        for (var shapeX = 0; shapeX < shape.GetLength(0); shapeX++)
+        {
+            for (var shapeY = 0; shapeY < shape.GetLength(1); shapeY++)
+            {
+                if (startingCellX + shapeX >= this.PlayingFieldDimensions.X || startingCellY + shapeY >= this.PlayingFieldDimensions.Y)
+                {
+                    break;
+                }
+
+                if (shape[shapeX, shapeY].State == CellState.Ship)
+                {
+                    position.Add(this.Grid[startingCellX + shapeX, startingCellY + shapeY]);
+                }
+            }
+        }
+
+        return this.IsPositionValid(position);
+    }
+
+    /// <summary>
+    /// Transposes the shape by. Shape on input is not changed and a new shape is returned.
+    /// </summary>
+    /// <param name="shape">The shape.</param>
+    /// <returns>Transposed shape.</returns>
+    private Cell[,] TransposeShape(Cell[,] shape)
+    {
+        _ = shape ?? throw new ArgumentNullException(nameof(shape));
+
+        var transposedShape = new Cell[shape.GetLength(1), shape.GetLength(0)];
+
+        for (var x = 0; x < shape.GetLength(0); x++)
+        {
+            for (var y = 0; y < shape.GetLength(1); y++)
+            {
+                var cell = new Cell()
+                {
+                    State = shape[x, y].State,
+                };
+
+                transposedShape[y, x] = cell;
+            }
+        }
+
+        return transposedShape;
+    }
+
+    /// <summary>
+    /// Gets all the distinct flips of provided shape.
+    /// </summary>
+    /// <param name="shape">The shape.</param>
+    /// <returns>List of all possible shapes that are distinct flips of the input shape.</returns>
+    private List<Cell[,]> GetDistinctFlips(Cell[,] shape)
+    {
+        _ = shape ?? throw new ArgumentNullException(nameof(shape));
+
+        var result = new List<Cell[,]> { shape };
+
+        var possibleShape = this.FlipByX(shape);
+
+        if (!this.AreShapesEqual(shape, possibleShape))
+        {
+            result.Add(possibleShape);
+        }
+
+        possibleShape = this.FlipByY(possibleShape);
+
+        if (!this.AreShapesEqual(shape, possibleShape))
+        {
+            result.Add(possibleShape);
+        }
+
+        possibleShape = this.FlipByY(possibleShape);
+
+        if (!this.AreShapesEqual(shape, possibleShape))
+        {
+            result.Add(possibleShape);
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// Flips the shape by X axis. Shape on input is not changed and a new shape is returned.
+    /// </summary>
+    /// <param name="shape">The shape.</param>
+    /// <returns>Flipped shape.</returns>
+    private Cell[,] FlipByX(Cell[,] shape)
+    {
+        _ = shape ?? throw new ArgumentNullException(nameof(shape));
+
+        var flippedShape = new Cell[shape.GetLength(0), shape.GetLength(1)];
+
+        for (var x = 0; x < shape.GetLength(0); x++)
+        {
+            for (var y = 0; y < shape.GetLength(1); y++)
+            {
+                var cell = new Cell()
+                {
+                    State = shape[shape.GetLength(0) - x - 1, y].State,
+                };
+
+                flippedShape[x, y] = cell;
+            }
+        }
+
+        return flippedShape;
+    }
+
+    /// <summary>
+    /// Flips the shape by Y axis. Shape on input is not changed and a new shape is returned.
+    /// </summary>
+    /// <param name="shape">The shape.</param>
+    /// <returns>Flipped shape.</returns>
+    private Cell[,] FlipByY(Cell[,] shape)
+    {
+        _ = shape ?? throw new ArgumentNullException(nameof(shape));
+
+        var flippedShape = new Cell[shape.GetLength(0), shape.GetLength(1)];
+
+        for (var x = 0; x < shape.GetLength(0); x++)
+        {
+            for (var y = 0; y < shape.GetLength(1); y++)
+            {
+                var cell = new Cell()
+                {
+                    State = shape[x, shape.GetLength(1) - y - 1].State,
+                };
+
+                flippedShape[x, y] = cell;
+            }
+        }
+
+        return flippedShape;
+    }
+
+    /// <summary>
+    /// Ares the shapes equal.
+    /// </summary>
+    /// <param name="shapeOne">The shape one.</param>
+    /// <param name="shapeTwo">The shape two.</param>
+    /// <returns>
+    ///   <c>true</c> if the provided shapes have same states at same cells; otherwise, <c>false</c>.
+    /// </returns>
+    private bool AreShapesEqual(Cell[,] shapeOne, Cell[,] shapeTwo)
+    {
+        _ = shapeTwo ?? throw new ArgumentNullException(nameof(shapeTwo));
+        _ = shapeOne ?? throw new ArgumentNullException(nameof(shapeOne));
+
+        if (shapeOne.GetLength(0) != shapeTwo.GetLength(0))
+        {
+            return false;
+        }
+
+        if (shapeOne.GetLength(1) != shapeTwo.GetLength(1))
+        {
+            return false;
+        }
+
+        for (var x = 0; x < shapeOne.GetLength(0); x++)
+        {
+            for (var y = 0; y < shapeOne.GetLength(1); y++)
+            {
+                if (shapeOne[x, y].State != shapeTwo[x, y].State)
+                {
+                    return false;
+                }
+            }
+        }
+
+        return true;
     }
 
     /// <summary>
@@ -343,6 +553,19 @@ public class PlayingField
         }
 
         return true;
+    }
+
+    /// <summary>
+    /// Clears the playing field.
+    /// </summary>
+    private void ClearPlayingField()
+    {
+        foreach (var cell in this.Grid)
+        {
+            cell.State = CellState.Water;
+        }
+
+        this.Fleet.Clear();
     }
 
     /// <summary>
