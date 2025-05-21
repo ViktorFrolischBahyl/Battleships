@@ -1,0 +1,23 @@
+Submarine
+X
+
+Submarine
+X
+
+Boat
+XX
+
+Boat
+XX
+
+Carrier
+XXX
+
+Plus
+ X
+XXX
+ X
+
+L-Boat
+XXXX
+ X

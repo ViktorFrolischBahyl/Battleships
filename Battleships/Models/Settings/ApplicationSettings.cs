@@ -8,10 +8,10 @@ namespace Battleships.Models.Settings;
 public class ApplicationSettings
 {
     /// <summary>
-    /// Gets the battleships that should be generated on the playing fields.
+    /// Gets or sets the path to ships definition file.
     /// </summary>
     /// <value>
-    /// The battleships that should be generated on the playing fields.
+    /// The path to ships definition file.
     /// </value>
-    public List<Ship> Battleships { get; } = [];
+    public string PathToShipsDefinitionFile { get; set; }
 }

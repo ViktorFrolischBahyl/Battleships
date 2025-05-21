@@ -20,4 +20,10 @@
     <ProjectReference Include="..\Battleships\Battleships.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="ShipsDefinition.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>

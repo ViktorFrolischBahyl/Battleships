@@ -64,6 +64,8 @@ public class Program
 
         builder.Services.Configure<ApplicationSettings>(builder.Configuration.GetSection(nameof(ApplicationSettings)));
 
+        builder.Services.AddSingleton<ILoadShipsDefinitionsService, LoadShipsDefinitionsFromFileService>();
+
         builder.Services.AddSingleton<IGamesStorageProvider, InMemoryGamesStorageProvider>();
 
         builder.Services.AddSingleton<IBattleshipsService, BattleshipsService>();

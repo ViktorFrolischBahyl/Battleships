@@ -34,7 +34,7 @@ public static class Helper
             },
             new(GenerateLShape())
             {
-                Type = "L",
+                Type = "L-Boat",
             },
         };
 

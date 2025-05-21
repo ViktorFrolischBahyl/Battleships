@@ -13,18 +13,10 @@ namespace Battleships.Services;
 /// <seealso cref="Battleships.Services.Interfaces.IBattleshipsService" />
 public class BattleshipsService(
     ILogger<BattleshipsService> logger,
-    IOptions<ApplicationSettings> settings,
+    ILoadShipsDefinitionsService loadShipsDefinitionsService,
     IGamesStorageProvider gamesStorageProvider)
     : IBattleshipsService
 {
-    /// <summary>
-    /// Gets the settings.
-    /// </summary>
-    /// <value>
-    /// The settings.
-    /// </value>
-    private ApplicationSettings Settings { get; } = settings?.Value ?? throw new ArgumentNullException(nameof(settings));
-
     /// <summary>
     /// Gets the logger.
     /// </summary>
@@ -40,6 +32,14 @@ public class BattleshipsService(
     /// The games storage provider.
     /// </value>
     private IGamesStorageProvider GamesStorageProvider { get; } = gamesStorageProvider ?? throw new ArgumentNullException(nameof(gamesStorageProvider));
+
+    /// <summary>
+    /// Gets the load ships definitions service.
+    /// </summary>
+    /// <value>
+    /// The load ships definitions service.
+    /// </value>
+    private ILoadShipsDefinitionsService LoadShipsDefinitionsService { get; } = loadShipsDefinitionsService ?? throw new ArgumentNullException(nameof(loadShipsDefinitionsService));
 
     /// <inheritdoc />
     public Game CreateGame(CreateGameInput input)
@@ -61,7 +61,7 @@ public class BattleshipsService(
             this.Logger.LogTrace($"Initialization of game {game.GameId} started.");
 
             game.InitializeGame(
-                this.Settings.Battleships,
+                this.LoadShipsDefinitionsService.LoadShipsDefinitions(),
                 new Dimensions()
                 {
                     X = input.X,
